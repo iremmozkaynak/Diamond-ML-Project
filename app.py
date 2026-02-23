@@ -1,9 +1,16 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 import pickle
 import pandas as pd
 from pydantic import BaseModel
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
+
 app = FastAPI()
 
+# Templates
+templates = Jinja2Templates(directory="templates")
+
+# Load model and preprocessors
 with open ("30-diamond_model_complete.pkl", "rb") as f:
     saved_data = pickle.load(f)
     model = saved_data["model"]
@@ -23,11 +30,15 @@ class DiamondFeatures(BaseModel):
     z : float
 
 
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
 @app.post("/predict")
 async def predict(features: DiamondFeatures):
-    input_data  = pd.DataFrame([features.model_dump()])z
+    input_data  = pd.DataFrame([features.model_dump()])
     for col in ["cut", "color", "clarity"]:
         input_data[col] = encoders[col].transform(input_data[col])
     input_scaled = scaler.transform(input_data)
     prediction = model.predict(input_scaled)
-    return {"prediction": prediction[0]}
+    return {"predicted_price": prediction[0]}
