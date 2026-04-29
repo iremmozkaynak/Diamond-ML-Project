@@ -3,277 +3,626 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diamond Price Predictor</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <meta name="description" content="AI-powered diamond price prediction tool. Enter diamond characteristics and get an instant price estimate.">
+    <title>Diamond Price Predictor | AI Powered</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 50%, #2d2d2d 100%);
-            color: #ffffff;
-            font-family: 'Georgia', serif;
-            min-height: 100vh;
-            padding: 20px;
+        :root {
+            --primary: #a78bfa;
+            --primary-dark: #7c3aed;
+            --primary-light: #c4b5fd;
+            --accent: #f472b6;
+            --accent2: #38bdf8;
+            --success: #34d399;
+            --error: #f87171;
+            --bg: #0f0a1e;
+            --bg2: #160e2e;
+            --surface: rgba(255,255,255,0.04);
+            --surface-hover: rgba(255,255,255,0.07);
+            --border: rgba(167,139,250,0.2);
+            --border-focus: rgba(167,139,250,0.6);
+            --text: #f1f0ff;
+            --text-muted: #9ca3af;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --shadow-glow: 0 0 40px rgba(167,139,250,0.15);
         }
-        
-        .container {
-            max-width: 900px;
-            background: linear-gradient(145deg, #1e1e1e, #2a2a2a);
-            padding: 40px;
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ─── Animated background ─── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 10%, rgba(124,58,237,0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 80% 80%, rgba(244,114,182,0.12) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 60% 20%, rgba(56,189,248,0.08) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Floating orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: 0;
+            animation: floatOrb 12s ease-in-out infinite;
+        }
+        .orb-1 { width: 400px; height: 400px; background: var(--primary-dark); top: -100px; left: -100px; animation-delay: 0s; }
+        .orb-2 { width: 300px; height: 300px; background: var(--accent); bottom: -80px; right: -80px; animation-delay: 4s; }
+        .orb-3 { width: 200px; height: 200px; background: var(--accent2); top: 50%; left: 50%; animation-delay: 8s; }
+
+        @keyframes floatOrb {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(20px, -30px) scale(1.05); }
+            66% { transform: translate(-15px, 20px) scale(0.95); }
+        }
+
+        /* ─── Main card ─── */
+        .card {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 780px;
+            background: rgba(22, 14, 46, 0.7);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 48px 52px;
+            box-shadow:
+                0 32px 64px rgba(0,0,0,0.5),
+                var(--shadow-glow),
+                inset 0 1px 0 rgba(255,255,255,0.08);
+            animation: slideUp 0.6s cubic-bezier(0.16,1,0.3,1) forwards;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(32px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── Header ─── */
+        .header {
+            text-align: center;
+            margin-bottom: 44px;
+        }
+
+        .diamond-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, var(--primary-dark), var(--accent));
             border-radius: 20px;
-            box-shadow: 
-                0 20px 40px rgba(0,0,0,0.5),
-                inset 0 1px 0 rgba(255,255,255,0.1);
-            border: 1px solid #333;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(124,58,237,0.4);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        .diamond-icon svg {
+            width: 36px;
+            height: 36px;
+            fill: #fff;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 8px 32px rgba(124,58,237,0.4); transform: scale(1); }
+            50%       { box-shadow: 0 8px 48px rgba(124,58,237,0.65); transform: scale(1.04); }
+        }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.1rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #e9d5ff 0%, var(--primary-light) 40%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            font-weight: 400;
+        }
+
+        /* ─── Section divider ─── */
+        .section-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--primary);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--border), transparent);
+        }
+
+        /* ─── Form grid ─── */
+        .form-section { margin-bottom: 32px; }
+
+        .grid { display: grid; gap: 16px; }
+        .grid-2 { grid-template-columns: 1fr 1fr; }
+        .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+        /* ─── Form fields ─── */
+        .field { display: flex; flex-direction: column; gap: 8px; }
+
+        label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #c4b5fd;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        label svg {
+            width: 14px;
+            height: 14px;
+            opacity: 0.8;
+        }
+
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23a78bfa' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 40px;
+            cursor: pointer;
+        }
+
+        select option {
+            background: #1e1340;
+            color: var(--text);
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            border-color: var(--border-focus);
+            background: rgba(167,139,250,0.06);
+            box-shadow: 0 0 0 3px rgba(167,139,250,0.12);
+        }
+
+        input[type="number"]:hover,
+        select:hover {
+            border-color: rgba(167,139,250,0.4);
+            background: var(--surface-hover);
+        }
+
+        input::placeholder { color: #4b5563; }
+
+        /* ─── Submit button ─── */
+        .btn-predict {
+            width: 100%;
+            padding: 16px;
+            margin-top: 8px;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #9333ea 50%, var(--accent) 100%);
+            background-size: 200% 200%;
+            border: none;
+            border-radius: var(--radius);
+            color: #fff;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, background-position 0.4s;
+            box-shadow: 0 8px 32px rgba(124,58,237,0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            animation: gradientShift 4s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%  { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100%{ background-position: 0% 50%; }
+        }
+
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(124,58,237,0.6);
+        }
+
+        .btn-predict:active { transform: translateY(0); }
+
+        .btn-predict:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-predict svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+        /* Spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ─── Result box ─── */
+        #result {
+            display: none;
+            margin-top: 28px;
+            border-radius: var(--radius);
+            padding: 28px 32px;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
             position: relative;
             overflow: hidden;
         }
-        
-        .container::before {
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        #result.success {
+            background: linear-gradient(135deg, rgba(52,211,153,0.1), rgba(16,185,129,0.05));
+            border: 1.5px solid rgba(52,211,153,0.35);
+            box-shadow: 0 0 40px rgba(52,211,153,0.1);
+        }
+
+        #result.error {
+            background: linear-gradient(135deg, rgba(248,113,113,0.1), rgba(239,68,68,0.05));
+            border: 1.5px solid rgba(248,113,113,0.35);
+            box-shadow: 0 0 40px rgba(248,113,113,0.1);
+        }
+
+        #result::before {
             content: '';
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
-            animation: shimmer 3s ease-in-out infinite;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+            animation: shimmer 2.5s infinite;
         }
-        
-        @keyframes shimmer {
-            0%, 100% { transform: rotate(0deg); }
-            50% { transform: rotate(180deg); }
-        }
-        
-        h1 {
-            color: #e8e8e8;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 2.5rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            position: relative;
-            z-index: 1;
-        }
-        
-        h1::before {
-            content: '💎';
-            margin-right: 15px;
-            font-size: 2rem;
-            filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
-        }
-        
-        .form-label {
-            color: #d4d4d4;
-            font-weight: 600;
-            margin-bottom: 8px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-        }
-        
-        .form-control, .form-select {
-            background: linear-gradient(145deg, #2a2a2a, #1e1e1e);
-            border: 2px solid #444;
-            color: #ffffff;
-            border-radius: 10px;
-            padding: 12px 15px;
-            transition: all 0.3s ease;
-            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.3);
-        }
-        
-        .form-control:focus, .form-select:focus {
-            background: linear-gradient(145deg, #333, #2a2a2a);
-            border-color: #666;
-            box-shadow: 
-                inset 2px 2px 5px rgba(0,0,0,0.3),
-                0 0 15px rgba(255,255,255,0.1);
-            color: #ffffff;
-        }
-        
-        .form-control::placeholder {
-            color: #888;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(145deg, #4a4a4a, #2a2a2a);
-            border: 2px solid #555;
-            color: #ffffff;
-            padding: 15px 40px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 15px;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 
-                0 8px 15px rgba(0,0,0,0.3),
-                inset 0 1px 0 rgba(255,255,255,0.1);
-            position: relative;
-            z-index: 10;
-            cursor: pointer;
-        }
-        
-        .btn-primary:hover {
-            background: linear-gradient(145deg, #555, #333);
-            border-color: #666;
-            transform: translateY(-2px);
-            box-shadow: 
-                0 12px 20px rgba(0,0,0,0.4),
-                inset 0 1px 0 rgba(255,255,255,0.2);
-        }
-        
-        .result {
-            margin-top: 30px;
-            padding: 25px;
-            border-radius: 15px;
-            display: none;
-            background: linear-gradient(145deg, #1a4a1a, #0d3d0d);
-            border: 2px solid #2d5a2d;
-            box-shadow: 
-                0 10px 20px rgba(0,0,0,0.3),
-                inset 0 1px 0 rgba(255,255,255,0.1);
-            position: relative;
-            z-index: 1;
-        }
-        
-        .result h4 {
-            color: #90ee90;
-            text-shadow: 0 0 10px rgba(144,238,144,0.3);
-            font-size: 1.8rem;
-        }
-        
-        .mb-3 {
-            margin-bottom: 1.5rem;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .row {
-            position: relative;
-            z-index: 1;
-        }
-        
 
+        @keyframes shimmer {
+            from { transform: translateX(-100%); }
+            to   { transform: translateX(100%); }
+        }
+
+        .result-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--success);
+            margin-bottom: 8px;
+        }
+
+        .result-label.err { color: var(--error); }
+
+        .result-price {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--success), #6ee7b7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .result-hint {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .result-error-msg {
+            font-size: 0.95rem;
+            color: var(--error);
+            font-weight: 500;
+        }
+
+        /* ─── Responsive ─── */
+        @media (max-width: 640px) {
+            .card { padding: 32px 24px; }
+            h1 { font-size: 1.6rem; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .result-price { font-size: 2rem; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Diamond Price Predictor</h1>
-        <form id="predictionForm">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="carat" class="form-label"><i class="fas fa-weight"></i> Carat</label>
-                    <input type="number" step="0.01" class="form-control" id="carat" placeholder="e.g., 1.25" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="cut" class="form-label"><i class="fas fa-cut"></i> Cut</label>
-                    <select class="form-select" id="cut" required>
-                        <option value="Fair">Fair</option>
-                        <option value="Good">Good</option>
-                        <option value="Very Good">Very Good</option>
-                        <option value="Premium">Premium</option>
-                        <option value="Ideal">Ideal</option>
-                    </select>
-                </div>
+    <!-- Floating background orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <main class="card" role="main">
+        <!-- Header -->
+        <div class="header">
+            <div class="diamond-icon" aria-hidden="true">
+                <!-- Diamond SVG -->
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 3h12l4 6-10 12L2 9z"/>
+                </svg>
             </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="color" class="form-label"><i class="fas fa-palette"></i> Color</label>
-                    <select class="form-select" id="color" required>
-                        <option value="D">D (Colorless)</option>
-                        <option value="E">E (Colorless)</option>
-                        <option value="F">F (Colorless)</option>
-                        <option value="G">G (Near Colorless)</option>
-                        <option value="H">H (Near Colorless)</option>
-                        <option value="I">I (Near Colorless)</option>
-                        <option value="J">J (Near Colorless)</option>
-                    </select>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="clarity" class="form-label"><i class="fas fa-eye"></i> Clarity</label>
-                    <select class="form-select" id="clarity" required>
-                        <option value="I1">I1 (Included)</option>
-                        <option value="SI2">SI2 (Slightly Included)</option>
-                        <option value="SI1">SI1 (Slightly Included)</option>
-                        <option value="VS2">VS2 (Very Slightly Included)</option>
-                        <option value="VS1">VS1 (Very Slightly Included)</option>
-                        <option value="VVS2">VVS2 (Very Very Slightly Included)</option>
-                        <option value="VVS1">VVS1 (Very Very Slightly Included)</option>
-                        <option value="IF">IF (Internally Flawless)</option>
-                    </select>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label for="depth" class="form-label"><i class="fas fa-arrows-alt-v"></i> Depth (%)</label>
-                    <input type="number" step="0.01" class="form-control" id="depth" placeholder="e.g., 61.5" required>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label for="table" class="form-label"><i class="fas fa-table"></i> Table (%)</label>
-                    <input type="number" step="0.01" class="form-control" id="table" placeholder="e.g., 57.0" required>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label for="x" class="form-label"><i class="fas fa-ruler-horizontal"></i> Length (mm)</label>
-                    <input type="number" step="0.01" class="form-control" id="x" placeholder="e.g., 5.73" required>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="y" class="form-label"><i class="fas fa-ruler-vertical"></i> Width (mm)</label>
-                    <input type="number" step="0.01" class="form-control" id="y" placeholder="e.g., 5.76" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="z" class="form-label"><i class="fas fa-cube"></i> Depth (mm)</label>
-                    <input type="number" step="0.01" class="form-control" id="z" placeholder="e.g., 3.53" required>
-                </div>
-            </div>
-            <div class="text-center">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-calculator"></i> Predict Diamond Price
-                </button>
-            </div>
-        </form>
-        <div id="result" class="result text-center">
-            <h4><i class="fas fa-dollar-sign"></i> Predicted Price: <span id="predictedPrice">$0</span></h4>
+            <h1>Diamond Price Predictor</h1>
+            <p class="subtitle">Enter the characteristics of your diamond to get an AI-powered price estimate</p>
         </div>
-    </div>
+
+        <!-- Form -->
+        <form id="predictionForm" novalidate>
+
+            <!-- Basic Properties -->
+            <div class="form-section">
+                <div class="section-label">Basic Properties</div>
+                <div class="grid grid-2">
+                    <div class="field">
+                        <label for="carat">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l2 2"/></svg>
+                            Carat
+                        </label>
+                        <input type="number" id="carat" step="0.01" min="0.01" max="5" placeholder="e.g. 1.25" required>
+                    </div>
+                    <div class="field">
+                        <label for="cut">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 9 18 21 6 21 2 9"/></svg>
+                            Cut
+                        </label>
+                        <select id="cut" required>
+                            <option value="Fair">Fair</option>
+                            <option value="Good">Good</option>
+                            <option value="Very Good">Very Good</option>
+                            <option value="Premium">Premium</option>
+                            <option value="Ideal" selected>Ideal</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quality Grading -->
+            <div class="form-section">
+                <div class="section-label">Quality Grading</div>
+                <div class="grid grid-2">
+                    <div class="field">
+                        <label for="color">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+                            Color
+                        </label>
+                        <select id="color" required>
+                            <option value="D">D — Colorless</option>
+                            <option value="E">E — Colorless</option>
+                            <option value="F">F — Colorless</option>
+                            <option value="G" selected>G — Near Colorless</option>
+                            <option value="H">H — Near Colorless</option>
+                            <option value="I">I — Near Colorless</option>
+                            <option value="J">J — Near Colorless</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="clarity">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            Clarity
+                        </label>
+                        <select id="clarity" required>
+                            <option value="I1">I1 — Included</option>
+                            <option value="SI2">SI2 — Slightly Included</option>
+                            <option value="SI1">SI1 — Slightly Included</option>
+                            <option value="VS2" selected>VS2 — Very Slightly Included</option>
+                            <option value="VS1">VS1 — Very Slightly Included</option>
+                            <option value="VVS2">VVS2 — Very Very Slightly Included</option>
+                            <option value="VVS1">VVS1 — Very Very Slightly Included</option>
+                            <option value="IF">IF — Internally Flawless</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Physical Dimensions -->
+            <div class="form-section">
+                <div class="section-label">Physical Dimensions</div>
+                <div class="grid grid-3">
+                    <div class="field">
+                        <label for="depth">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+                            Depth (%)
+                        </label>
+                        <input type="number" id="depth" step="0.1" min="40" max="80" placeholder="e.g. 61.5" required>
+                    </div>
+                    <div class="field">
+                        <label for="table">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                            Table (%)
+                        </label>
+                        <input type="number" id="table" step="0.1" min="40" max="95" placeholder="e.g. 57.0" required>
+                    </div>
+                    <div class="field">
+                        <label for="x">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                            Length X (mm)
+                        </label>
+                        <input type="number" id="x" step="0.01" min="0" max="12" placeholder="e.g. 5.73" required>
+                    </div>
+                </div>
+                <div class="grid grid-2" style="margin-top:16px;">
+                    <div class="field">
+                        <label for="y">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="5 12 12 19 19 12"/></svg>
+                            Width Y (mm)
+                        </label>
+                        <input type="number" id="y" step="0.01" min="0" max="12" placeholder="e.g. 5.76" required>
+                    </div>
+                    <div class="field">
+                        <label for="z">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                            Depth Z (mm)
+                        </label>
+                        <input type="number" id="z" step="0.01" min="0" max="8" placeholder="e.g. 3.53" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="btn-predict" id="submitBtn">
+                <span id="btnSpinner" class="spinner"></span>
+                <svg id="btnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                <span id="btnText">Predict Price</span>
+            </button>
+        </form>
+
+        <!-- Result -->
+        <div id="result" role="alert" aria-live="polite">
+            <!-- Filled dynamically -->
+        </div>
+    </main>
 
     <script>
-        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+        const form = document.getElementById('predictionForm');
+        const resultBox = document.getElementById('result');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const btnIcon = document.getElementById('btnIcon');
+        const btnText = document.getElementById('btnText');
+
+        function setLoading(loading) {
+            submitBtn.disabled = loading;
+            btnSpinner.style.display = loading ? 'block' : 'none';
+            btnIcon.style.display = loading ? 'none' : 'block';
+            btnText.textContent = loading ? 'Predicting...' : 'Predict Price';
+        }
+
+        function showSuccess(price) {
+            const formatted = new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                maximumFractionDigits: 0
+            }).format(price);
+
+            resultBox.className = 'success';
+            resultBox.innerHTML = `
+                <div class="result-label">✦ Estimated Market Value</div>
+                <div class="result-price">${formatted}</div>
+                <div class="result-hint">AI-powered estimate based on the provided characteristics</div>
+            `;
+            resultBox.style.display = 'block';
+            resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function showError(message) {
+            resultBox.className = 'error';
+            resultBox.innerHTML = `
+                <div class="result-label err">⚠ Prediction Failed</div>
+                <div class="result-error-msg">${message}</div>
+            `;
+            resultBox.style.display = 'block';
+        }
+
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            console.log('Form submitted!');
-            
-            const formData = {
-                carat: parseFloat(document.getElementById('carat').value),
-                cut: document.getElementById('cut').value,
-                color: document.getElementById('color').value,
+
+            const carat  = parseFloat(document.getElementById('carat').value);
+            const depth  = parseFloat(document.getElementById('depth').value);
+            const table  = parseFloat(document.getElementById('table').value);
+            const x      = parseFloat(document.getElementById('x').value);
+            const y      = parseFloat(document.getElementById('y').value);
+            const z      = parseFloat(document.getElementById('z').value);
+
+            // Basic client-side validation
+            if ([carat, depth, table, x, y, z].some(v => isNaN(v) || v <= 0)) {
+                showError('Please enter valid positive values for all numeric fields.');
+                return;
+            }
+
+            const payload = {
+                carat,
+                cut:     document.getElementById('cut').value,
+                color:   document.getElementById('color').value,
                 clarity: document.getElementById('clarity').value,
-                depth: parseFloat(document.getElementById('depth').value),
-                table: parseFloat(document.getElementById('table').value),
-                x: parseFloat(document.getElementById('x').value),
-                y: parseFloat(document.getElementById('y').value),
-                z: parseFloat(document.getElementById('z').value)
+                depth,
+                table,
+                x, y, z
             };
+
+            setLoading(true);
+            resultBox.style.display = 'none';
 
             try {
                 const response = await fetch('/predict', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData)
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
 
                 const data = await response.json();
-                document.getElementById('predictedPrice').textContent = 
-                    new Intl.NumberFormat('en-US', { 
-                        style: 'currency', 
-                        currency: 'USD',
-                        maximumFractionDigits: 0 
-                    }).format(data.predicted_price);
-                document.getElementById('result').style.display = 'block';
-            } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred while making the prediction.');
+
+                if (!response.ok) {
+                    showError(data.detail || 'An unexpected error occurred. Please try again.');
+                } else {
+                    showSuccess(data.predicted_price);
+                }
+            } catch (err) {
+                console.error('Network error:', err);
+                showError('Could not connect to the server. Please check your connection and try again.');
+            } finally {
+                setLoading(false);
             }
         });
     </script>
 </body>
-</html> 
+</html>
